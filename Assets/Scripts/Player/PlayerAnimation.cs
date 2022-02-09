@@ -1,9 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using Extensions;
-using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Animations;
 
 namespace Player
 {

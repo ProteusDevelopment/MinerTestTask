@@ -10,9 +10,14 @@ namespace Player
     [RequireComponent(typeof(Animator))]
     public class PlayerAnimation : MonoBehaviour
     {
+        [SerializeField] private AnimationClip _attackClip;
+        
         private Animator _animator;
 
         public UnityEvent OnAttackAnimationEnded = new UnityEvent();
+        
+        private static readonly int IsMoving = Animator.StringToHash("isMoving");
+        private static readonly int AttackTrigger = Animator.StringToHash("attack");
 
         private void Awake()
         {
@@ -21,23 +26,14 @@ namespace Player
 
         public void SetMoving(bool isMoving)
         {
-            _animator.SetBool("isMoving", isMoving);
+            _animator.SetBool(IsMoving, isMoving);
         }
 
         public void SetAttack()
         {
-            _animator.SetTrigger("attack");
-
-            AnimatorStateInfo stateInfo = _animator.GetNextAnimatorStateInfo(0);
-            if (stateInfo.IsName("NormalAttack01_SwordShield"))
-            {
-                Debug.Log("Attack state");
-                StartCoroutine(CoroutinesHelper.WaitAndExecuteAction(stateInfo.length, () =>
-                {
-                    Debug.Log("ended");
-                    OnAttackAnimationEnded.Invoke();
-                }));
-            }
+            _animator.SetTrigger(AttackTrigger);
+            
+            StartCoroutine(CoroutinesHelper.WaitAndExecuteAction(_attackClip.length, OnAttackAnimationEnded.Invoke));
         }
     }
 }

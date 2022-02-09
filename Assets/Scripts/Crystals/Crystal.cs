@@ -1,48 +1,120 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using Extensions;
 using UnityEngine;
 using UnityEngine.PlayerLoop;
 
 namespace Crystals
 {
-    public class Crystal : MonoBehaviour
+    public class Crystal : Damagable
     {
-        [SerializeField] private GameObject _fullModel;
-        [SerializeField] private GameObject _halfModel;
-        [SerializeField] private GameObject _brokenModel;
+        private const float RecoveringTime = 5f;
+        
+        [SerializeField] private string _resourceName;
+        [SerializeField] private int _resourceValuePerDamage;
+        
+        // Key - health, Value - model.
+        [SerializeField] private UnityKeyValuePair<int, GameObject>[] _models;
 
-        private int _health = 9;
+        private bool _isRecovering = false;
+        private float _recoveringTimer = 0;
 
-        public void Damage(int amount)
+        private void Awake()
         {
-            if (_health == 1)
+            try
             {
-
-                return;
+                _health = _models[0].Key;
             }
-            
-            _health -= amount;
-            UpdateModel();
-
-            if (_health < 7)
+            catch (IndexOutOfRangeException)
             {
-                // Recovery
+                Debug.LogError("Models must not be empty");
             }
         }
 
-        private void UpdateModel()
+        private void OnTriggerStay(Collider other)
         {
-            switch (_health)
+            if (!_isRecovering)
+                return;
+
+            if (other.CompareTag("Player"))
+                ResetRecoveringTimer();
+        }
+
+        private void Update()
+        {
+            if (!_isRecovering)
+                return;
+
+            _recoveringTimer -= Time.deltaTime;
+
+            if (_recoveringTimer < 0)
             {
-                case 6:
-                    _fullModel.SetActive(false);
-                    _halfModel.SetActive(true);
-                    break;
-                case 3:
-                    _halfModel.SetActive(true);
-                    _brokenModel.SetActive(true);
-                    break;
+                UpgradeModel();
             }
+        }
+
+        public override bool TryDamage(int amount, out KeyValuePair<string, int> takenResource)
+        {
+            if (_health == _models[_models.Length - 1].Key)
+            {
+                return false;
+            }
+            
+            _health -= amount;
+            DowngradeModel();
+
+            if (_health <= _models[1].Key)
+            {
+                _isRecovering = true;
+                ResetRecoveringTimer();
+            }
+
+            takenResource = new KeyValuePair<string, int>(_resourceName, _resourceValuePerDamage);
+            return true;
+        }
+
+        private void DowngradeModel()
+        {
+            for (int i = 1; i < _models.Length; i++)
+            {
+                if (_health == _models[i].Key)
+                {
+                    _models[i - 1].Value.SetActive(false);
+                    _models[i].Value.SetActive(true);
+                    break;
+                }
+            }
+        }
+
+        private void UpgradeModel()
+        {
+            for (int i = _models.Length - 2; i >= 0; i--)
+            {
+                if (_health < _models[i].Key)
+                {
+                    _health = _models[i].Key;
+                    _models[i].Value.SetActive(true);
+                    _models[i + 1].Value.SetActive(false);
+
+                    if (i == 0)
+                    {
+                        // Восстановили польностью.
+                        _isRecovering = false;
+                    }
+                    else
+                    {
+                        ResetRecoveringTimer();
+                    }
+
+                    break;
+                }
+            }
+        }
+
+        private void ResetRecoveringTimer()
+        {
+            _recoveringTimer = RecoveringTime;
         }
     }
 }

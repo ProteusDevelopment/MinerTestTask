@@ -11,12 +11,12 @@ namespace Player
         [SerializeField] private float _speed;
         [SerializeField] private Joystick _joystick;
 
-        private Player _player;
+        private PlayerContainer _player;
         private Rigidbody _rigidbody;
 
         private void Awake()
         {
-            _player = GetComponent<Player>();
+            _player = GetComponent<PlayerContainer>();
             _rigidbody = GetComponent<Rigidbody>();
         }
 

@@ -9,7 +9,7 @@ namespace Player
     [RequireComponent(typeof(PlayerAttack))]
     [RequireComponent(typeof(PlayerAnimation))]
     [RequireComponent(typeof(PlayerResources))]
-    public class Player : MonoBehaviour
+    public class PlayerContainer : MonoBehaviour
     {
         public PlayerMovement PlayerMovement
         {

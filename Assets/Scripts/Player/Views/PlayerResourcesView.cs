@@ -8,6 +8,8 @@ namespace Player.Views
     [RequireComponent(typeof(PlayerResources))]
     public class PlayerResourcesView : MonoBehaviour
     {
+        private const string ResourceDetailPath = "Player/Views/ResourceDetail";
+        
         [SerializeField] private Transform _resourceDetailLayout;
 
         private Dictionary<string, ResourceDetail> _resourceDetails = new Dictionary<string, ResourceDetail>();
@@ -17,6 +19,8 @@ namespace Player.Views
         private void Awake()
         {
             _playerResources = GetComponent<PlayerResources>();
+            
+            AddNewResource(PlayerResources.GoldResourceName);
         }
 
         private void OnEnable()
@@ -31,17 +35,22 @@ namespace Player.Views
             _playerResources.OnResourceAmountChanged.RemoveListener(ChangeResourceAmount);
         }
 
-        private void AddNewResource(string name)
+        private void AddNewResource(string resourceName)
         {
-            _resourceDetails[name] = Instantiate(Resources.Load<ResourceDetail>("/Player/Views/ResourceDetail"), _resourceDetailLayout);
+            if (!_playerResources.Resources.ContainsKey(resourceName))
+                _playerResources.Resources[resourceName] = 0;
+            
+            _resourceDetails[resourceName] =
+                Instantiate(Resources.Load<ResourceDetail>(ResourceDetailPath),
+                    _resourceDetailLayout);
 
-            _resourceDetails[name].SetResourceName(string.Format("{0}:", name));
-            ChangeResourceAmount(name);
+            _resourceDetails[resourceName].SetResourceName($"{resourceName}:");
+            ChangeResourceAmount(resourceName);
         }
 
-        private void ChangeResourceAmount(string name)
+        private void ChangeResourceAmount(string resourceName)
         {
-            _resourceDetails[name].SetResourceAmount(_playerResources.Resources[name].ToString());
+            _resourceDetails[resourceName].SetResourceAmount(_playerResources.Resources[resourceName].ToString());
         }
     }
 }
